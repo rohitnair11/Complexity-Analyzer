@@ -206,6 +206,16 @@ function complexity(filePath)
 				{
 					chainlength = 0;
 				}
+
+				// Calculate Max Nesting Depth.
+				if (node.type === 'IfStatement')
+				{
+					current_count = calculateDepth(node);
+					if (current_count > builder.MaxNestingDepth)
+					{
+						builder.MaxNestingDepth = current_count;
+					}
+				}
 				
 			});
 			builder.MaxMessageChains = maximumlength;
@@ -233,6 +243,76 @@ function childrenLength(node)
 	return count;
 }
 
+// Recursive function to calculate the depth of if statements
+function calculateDepth(node)
+{
+	if ( !node || node.length === 0 )
+	 {
+		return 0;
+	}
+
+	if (isDecision(node))
+	{
+		depth = 0;
+		if(node.type === 'IfStatement') 
+		{
+			if(node.consequent)
+			{
+				if(node.consequent.type == "BlockStatement")
+				{
+					for (prop in node.consequent.body)
+					{
+						current_count = calculateDepth(node.consequent.body[prop]);
+						if(current_count > depth){
+							depth = current_count;
+						} 
+					}
+				} else {
+						current_count = calculateDepth(node.consequent);
+						if(current_count > depth){
+							depth = current_count;
+						} 
+				}
+			}
+
+			if( node.alternate ){
+				if(node.alternate.type == "BlockStatement"){
+					for (prop in node.alternate.body) {
+						current_count = calculateDepth(node.alternate.body[prop]);
+						if(current_count > depth){
+							depth = current_count;
+						} 
+					}
+				} else {
+						current_count = calculateDepth(node.alternate);
+						if(current_count > depth){
+							depth = current_count;
+						} 
+				}
+			}
+			return depth + 1;
+		}
+		else {
+			if(node.body.type == "BlockStatement"){
+				for (prop in node.body.body) {
+					current_count = calculateDepth(node.body.body[prop]);
+					if(current_count > depth){
+						depth = current_count;
+					} 
+				}
+			} else {
+				for (prop in node.body) {
+					current_count = calculateDepth(node.body[prop]);
+					if(current_count > depth){
+						depth = current_count;
+					} 
+				}
+			}
+		}
+	} else {
+		return 0;
+	}
+}
 
 // Helper function for checking if a node is a "decision type node"
 function isDecision(node)
